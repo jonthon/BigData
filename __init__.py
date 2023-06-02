@@ -125,7 +125,6 @@ class Chunks(BigData):
     def ondata(self, chunkpath): raise NotImplementedError
 
 class ParallelRepeat(Chunks):
-    # exits parallel operation
     def ondata(self, selfpath):
         # starts parallel operation loop ..........................
         for parallelpath in self.chunkspaths:
