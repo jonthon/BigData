@@ -151,7 +151,8 @@ class ParallelOnce(ParallelRepeat):
 
 
 ################################################################
-# pandas system interfaces, they customize BigData
+# pandas system interfaces, they customize BigData, Chunks, 
+# ParallelRepeat, and ParallelOnce. 
 ################################################################
 # pandas mixin
 class Pandas:
