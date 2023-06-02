@@ -211,7 +211,7 @@ class ParallelPdOnce(   Pandas, ParallelOnce  ): pass
 
 
 #################################################################
-# pandas specific interfaces
+# pandas data specific interfaces
 #################################################################
 class SamplePd(BigDataPd):
     "Returns a sample of data according to passed df.dropna args"
