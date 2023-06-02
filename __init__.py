@@ -48,14 +48,14 @@ class BigData:
         self.chunksdir = chunksdir    # after successful os.makdir
                                       # (save state)
 
-        # nrows pandas.Reader arg
+        # nrows data library interface arg (i.e pandas.read_*)
         if not self.chunksize:        # prioritize chunks to rows
             chunkpath = os.path.join(chunksdir, chunksdir) 
             self.ondata(self.data, chunkpath)
             if self.verbose: print('done!')
             return
         
-        # chunksize pandas.Reader arg
+        # chunksize data library interface arg (i.e pandas.read_*)
         chunkspaths = []
         try:
         # starts operation loop ..........................................
