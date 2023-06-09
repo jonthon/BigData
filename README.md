@@ -9,10 +9,15 @@ This package implements interfaces for use on huge data files of any format (ie.
 
 It uses system interfaces to simplify data management; thus, a user only needs to perform specific data operations on files of any size that a running machine can hold. These specific data operations include fetching data, cleaning, reshaping, aligning, aggregating, analysing, visualising, etc. 
 
-Data handling in this package is approached in two main ways, either from a huge file or from chunks of data. 
+Data handling in this package is approached in two main ways, either from a huge file or from chunks of data. ```BigData*``` types are used for huge single files while ```Chunks*``` types are used for chunks of data files. ```Parallel*``` types customize ```Chunks``` class, and they loop through a hierarchy of data file chunks in sorted order either repeatedly or once. 
+A good example is ```DropDuplicatesPd``` that drops duplicated rows from chunks of data files. All rows from all chunks of data become unique to each other after running ```DropDuplicatesPd```. 
+
+For more flexibility, customize the pandas specific interfaces mentioned earlier and perform specific data operations using pandas.
+
 
 USAGE:
 -----
+This file's ```if __name__ == '__main__':``` statement block in ```__init__.py``` implements unittests for this package's main logic (handling big files or chunks of data). In these tests, pandas specific interfaces are customized and invoked as desired. Please, see code file (```__init__.py```) for example usages.
 
 
 EXAMPLES:
