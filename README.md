@@ -22,3 +22,54 @@ This file's ```if __name__ == '__main__':``` statement block in ```__init__.py``
 
 EXAMPLES:
 --------
+- Sample output from unittest run
+
+```
+jon@jons-linux:~/wanangu$ python3 -W ignore lib/datamgr/__init__.py
+..counting ...
+=> file path  : test1.json
+   file size  : 7329105 MB
+   chunks     : 15
+   nlines     : 2843
+operating ...
+=> chunks     : 15
+   time taken : 0 days, 0 hrs, 0 mins, 0.31 secs
+done!
+
+
+counting ...
+=> file path  : test2.json
+   file size  : 7328699 MB
+   chunks     : 15
+   nlines     : 2843
+operating ...
+=> chunks     : 15
+   time taken : 0 days, 0 hrs, 0 mins, 0.34 secs
+done!
+
+
+counting ...
+=> file path  : test3.json
+   file size  : 7329145 MB
+   chunks     : 15
+   nlines     : 2843
+operating ...
+=> chunks     : 15
+   time taken : 0 days, 0 hrs, 0 mins, 0.33 secs
+done!
+
+Dropping Dupplicates ...
+operating ...
+=> chunks     : 45
+   time taken : 0 days, 0 hrs, 0 mins, 21.3 secs
+joining   ...
+cleaning  ...
+done!
+
+
+.
+----------------------------------------------------------------------
+Ran 3 tests in 25.487s
+
+OK
+```
