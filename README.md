@@ -22,10 +22,11 @@ This file's ```if __name__ == '__main__':``` statement block in ```__init__.py``
 
 EXAMPLES:
 --------
-- Sample output from unittest run
+- Sample output from unittest run: 
+   Three intial test files ```test1.json```, ```test2.json```, and ```test3.json``` are chunked into a hierarchical directory tree. Then, duplicates are dropped from all chunks (45). Please, see below sample output with lowest verbosity from the ```test_parallelization``` test suite. 
 
 ```
-jon@jons-linux:~/wanangu$ python3 -W ignore lib/datamgr/__init__.py
+jon@jons-linux:~$ python3 -W ignore lib/datamgr/__init__.py
 ..counting ...
 => file path  : test1.json
    file size  : 7329105 MB
