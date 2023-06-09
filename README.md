@@ -27,6 +27,7 @@ EXAMPLES:
 
 ```
 jon@jons-linux:~$ python3 -W ignore lib/datamgr/__init__.py
+Chunking .....
 ..counting ...
 => file path  : test1.json
    file size  : 7329105 MB
