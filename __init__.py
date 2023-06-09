@@ -1,131 +1,153 @@
 
 import pandas as pd
-import os
+import os, time
 
 # don't relative import when unittesting or error
-if __name__ != '__main__':
-    from . import (_jsonmgr as json, _pdmgr as pdmgr,)
+if __name__ != '__main__': from . import (_jsonmgr as json, 
+                                          _pdmgr as pdmgr,)
 # modules from this package used in unittesting
-else:
-    from datamgr import _pdmgr as pdmgr
+else: from datamgr import _pdmgr as pdmgr
+
+
+#################################################################
+# general 
+#################################################################
+class Timer:
+    def __init__(self):
+        self.started = None
+        self.stopped = None
+    def start(self):
+        self.started = time.perf_counter()
+    def stop(self):
+        self.stopped = time.perf_counter()
+    def timetaken(self):
+        DAYS = 24 * 3600, 'days'
+        HRS  = 3600,      'hrs'  
+        MINS = 60,        'mins'  
+        SECS = 1,         'secs'
+        timetaken = []
+        secs = self.stopped - self.started
+        for qty, unit in DAYS, HRS, MINS:
+            qty, secs = divmod(secs, qty)
+            timetaken.append('%s %s' % (int(qty), unit))
+        timetaken.append('%s %s' % (round(secs, 2), SECS[1]))
+        return ', '.join(timetaken)
+
 
 #################################################################
 # System interfaces
 #################################################################
-class BigData:
-    "Customize, do not use directly. See BigDataPd"
-
+class FileSystemMgr:
+    # base system interface with mixin interface logic 
+    # (ie. self.StopOperation, self.init)
     class StopOperation(Exception): pass
 
-    def __init__(self, *, verbose=False):
-        # assign attributes for use in higher classes for 
-        # explicitness
-        self.verbose     = verbose
-        self.data        = None
-        self.fpath       = ''
-        self.chunksdir   = ''
-        self.chunkspaths = ''
-        # run operation during construction for simplicity
-        self.init()
+    def __init__(self, *, verbosity=False):
+        self.verbosity = verbosity
+        self.init() # simplicity
     
     def init(self): pass
 
-    def operate(self, chunksdir=None, opath=None, clean=False):
-        """
-        Calls self.ondata on every loaded file data chunk. Throws 
-        exception if chunksdir exists. 
-        """
-        if self.verbose: print('operating ...')
-
-        #**********************************************
-        # operation handler logic, customize as desired
-        #**********************************************
-        # make chunksdir if not yet
-        temp, _ = os.path.splitext(self.fpath)
-        temp    = temp.split(os.sep)[-1]
-        if not chunksdir: chunksdir = temp; del temp
-        os.mkdir(chunksdir)           # check for existence?
-        self.chunksdir = chunksdir    # after successful os.makdir
-                                      # (save state)
-
-        # nrows data library interface arg (i.e pandas.read_*)
-        if not self.chunksize:        # prioritize chunks to rows
-            chunkpath = os.path.join(chunksdir, chunksdir) 
-            self.ondata(self.data, chunkpath)
-            if self.verbose: print('done!')
-            return
-        
-        # chunksize data library interface arg (i.e pandas.read_*)
-        chunkspaths = []
-        try:
-        # starts operation loop ..........................................
-            for chunk, data in enumerate(self.data, 1):
-                chunkpath = str(len(str(self.nchunks))) # digits precision
-                chunkpath = chunksdir + '-%0' + chunkpath + 'd'
-                chunkpath = os.path.join(chunksdir, (chunkpath % chunk))
-                chunkspaths.append(chunkpath)
-                self.chunkspaths = chunkspaths # for higher classes (state)
-                # operate on every chunk
-                # stops operation loop or ................................
-                self.ondata(data, chunkpath)
-        # completes operation loop .......................................
-        except self.StopOperation: pass
-
-        #**************************************************
-        # Joining occurs here. Keep the protocol or emulate
-        #**************************************************
-        if opath: 
-            self.joinchunks(chunkspaths, opath, clean=clean, 
-                                                chunksdir=chunksdir)
-        if self.verbose: print('done!')
-
-    def joinchunks(self, chunkspaths, opath, *, clean=False,     # pass
-                                                chunksdir=None): # both
-        "joins chunkfiles to one file"
-        if self.verbose: print('joining   ...')
-        # leave if there are no chunks (save system resources)
-        file = open(opath, 'wb') 
+    def joinchunks(self, chunkspaths, opath):
+        if not chunkspaths: return # save sys resources
+        if self.verbosity: print('joining   ...')
         chunkspaths.sort()
+        file = open(opath, 'wb')
         for chunkpath in chunkspaths:
             file.write(open(chunkpath, 'rb').read())
         file.close()
-        # clean
-        if clean and chunksdir: self.clean(chunksdir)
 
     def clean(self, chunksdir):
-        # removes directory recursively
-        if self.verbose: print('cleaning  ...')
+        if self.verbosity: print('cleaning  ...')
         os.system('rm -r %s' % chunksdir)
 
-    def ondata(self, data, chunkpath): raise NotImplementedError
+class BigData(FileSystemMgr):
+    """
+    """
+    def operate(self, data, chunksdir, nchunks=None, opath=None, clean=False):
+        """
+        """
+        if self.verbosity: print('operating ...')
+
+        #**********************************************
+        # operation handler logic, OOP as desired
+        #**********************************************
+        # make chunksdir if not yet 
+        os.mkdir(chunksdir)           # check for existence?
+        chunkname        = chunksdir.split(os.sep)[-1]
+        chunkspaths      = []
+        self.chunksdir   = chunksdir    # for higher classes use
+        self.chunkspaths = chunkspaths  # for higher classes use
+        timer = Timer() # create timer
+        timer.start()   # start  timer
+        try:
+        # starts operation loop ..........................................
+            for chunknum, chunkdata in enumerate(data, 1):
+                if self.verbosity > 1: print('\t', 'chunk:', '[',chunknum,']')
+                if nchunks:
+                    chunkpath = str(len(str(nchunks))) # digits precision
+                    chunkpath = chunkname + '-%0' + chunkpath + 'd'
+                    chunkpath = chunkpath % chunknum
+                else: 
+                    chunkpath = chunkname + '-' + str(chunknum)
+                chunkpath = os.path.join(chunksdir, chunkpath)
+                chunkspaths.append(chunkpath)
+                # operate on every chunk
+                # stops operation loop or ................................
+                self.onchunkdata(chunkdata, chunkpath)
+        # completes operation loop .......................................
+        except self.StopOperation: pass
+        timer.stop()    # stop timer
+        if self.verbosity:
+            print('=> chunks     : %s' % chunknum)
+            print('   time taken : %s' % timer.timetaken())
+
+        if opath: self.joinchunks(chunkspaths, opath)
+
+        if clean: self.clean(chunksdir)
+
+        if self.verbosity: print('done!\n\n')
+    def onchunkdata(self, data, chunkpath): raise NotImplementedError
     
-class Chunks(BigData):
-    class StopOperation(Exception): pass
+class Chunks(FileSystemMgr):
     def operate(self, chunksdir, opath=None, clean=False):
-        # load paths instead of splitting file, see BigDataPd
-        if self.verbose: print('operating ...')
-        chunkspaths = os.listdir(chunksdir)
-        chunkspaths.sort()             # corrupts data if not called 
-        chunkspaths = [os.path.join(chunksdir, chunkpath) 
-                       for chunkpath in chunkspaths]
+        if self.verbosity: print('operating ...')
+
+        # collect paths for processing
+        chunkspaths = []
+        for dirname, subdirs, filenames in os.walk(chunksdir):
+            if filenames: chunkspaths.extend([os.path.join(dirname, filename) 
+                                            for filename in filenames])
+        chunkspaths.sort()             # corrupts data if not called
+
         self.chunksdir   = chunksdir   # for use in higher classes (state)
         self.chunkspaths = chunkspaths # for use in higher classes (state)
 
-        # starts operation loop ....................
+        timer = Timer() # create timer
+        timer.start()   # start  timer
         try:
-            # stops operation loop or ..............
-            list(map(self.ondata, self.chunkspaths))
-        # completes operation loop .................
-        except self.StopOperation: pass
+        # starts operation loop .............................................
+            for chunknum, chunkpath in enumerate(self.chunkspaths, 1):
+                if self.verbosity > 1: print('\t', 'chunkpath:', '[',chunkpath,']')
+                # stops operation loop or ...................................
+                self.onchunkpath(chunkpath)
+        # completes operation loop ..........................................
+        except self.StopOperation: pass 
+        timer.stop()    # stop timer
+        if self.verbosity:
+            print('=> chunks     : %s' % chunknum)
+            print('   time taken : %s' % timer.timetaken())
 
-        # emulates joining invocation
-        if opath: self.joinchunks(chunkspaths, opath, clean=clean, 
-                                                chunksdir=chunksdir)
-        if self.verbose: print('done!')
-    def ondata(self, chunkpath): raise NotImplementedError
+        if opath: self.joinchunks(chunkspaths, opath)
+
+        if clean: self.clean(chunksdir)
+
+        if self.verbosity: print('done!\n\n')
+    def onchunkpath(self, chunkpath): raise NotImplementedError
 
 class ParallelRepeat(Chunks):
-    def ondata(self, selfpath):
+    # (nchunks ** 2) runs
+    def onchunkpath(self, selfpath):
         # starts parallel operation loop ..........................
         for parallelpath in self.chunkspaths:
             # stops parallel operation loop or ....................
@@ -133,26 +155,20 @@ class ParallelRepeat(Chunks):
         # completes parallel operation ............................
     def onparallel(self, selfpath, parallelpath):
         raise NotImplementedError
-    def loadself(    self, selfpath    ): raise NotImplementedError
-    def dumpself(    self, selfdata    ): raise NotImplementedError    
-    def loadparallel(self, parallelpath): raise NotImplementedError
-    def dumpparallel(self, paralleldata): raise NotImplementedError
 
 class ParallelOnce(ParallelRepeat):
-    def __init__(self, *pargs, **kwargs):
-        self.skip = ''
-        ParallelRepeat.__init__(self, *pargs, **kwargs)
+    # math.factorial(nchunks) runs
     def onparallel(self, selfpath, parallelpath):
-        if not parallelpath > self.skip: return
+        if not parallelpath >= selfpath: return
+        if self.verbosity > 2: 
+            print('\t\t', 'parallelpath:', '[',parallelpath,']')
         self.onparallelonce(selfpath, parallelpath)
-        self.skip = selfpath
     def onparallelonce(self, selfpath, parallelpath): 
         raise NotImplementedError
 
 
 ################################################################
-# pandas system interfaces, they customize BigData, Chunks, 
-# ParallelRepeat, and ParallelOnce. 
+# pandas system interfaces, they customize BigData
 ################################################################
 # pandas mixin
 class Pandas:
@@ -160,11 +176,11 @@ class Pandas:
         #****************************************************
         # intercepts pandas.read_* functions for file reading
         #****************************************************
-        def read(fpath, **kwargs):
+        def read_(ipath, *, mb=False, **kwargs):
             "Customizes pandas reader to take chunksize in MB"
-            def chunk_mb_to_lines(ipath, chunksize):
+            def mb_to_lines(ipath, chunksize):
                 "Converts chunksize from MB to nlines"
-                if self.verbose: print('counting  ...')
+                if self.verbosity: print('counting ...')
                 import math
                 import subprocess
                 # file lines and size counts
@@ -174,44 +190,50 @@ class Pandas:
                 flines, fsize = int(flines), int(fsize)
                 nlines = math.ceil(chunksize * (10 ** 6) * flines / fsize)
                 # return (chunklines, nchunks) tuple 
-                return nlines, math.ceil(flines / nlines) 
+                nchunks = math.ceil(flines / nlines)
+                if self.verbosity: 
+                    print('=> file path  : %s'    % ipath)
+                    print('   file size  : %s MB' % fsize)
+                    print('   chunks     : %s'    % nchunks)
+                    print('   nlines     : %s'    % nlines)
+                return nlines, nchunks
             
             # emulate pd chunksize protocol and keep the rest
             try:
-                if kwargs['chunksize']: self.chunksize = kwargs['chunksize']
-                else:                   raise KeyError
-                self.chunklines, self.nchunks = chunk_mb_to_lines(
-                                                        fpath, 
-                                                        self.chunksize)
-                kwargs['chunksize'] = self.chunklines
+                if mb and kwargs['chunksize']: 
+                    chunksize           = kwargs['chunksize']
+                    nlines, nchunks     = mb_to_lines(ipath, chunksize)
+                    kwargs['chunksize'] = nlines
+                else: raise KeyError
             # keep pandas' defaults
-            except KeyError: self.chunksize = None
+            except KeyError: chunksize  = None
+            data = getattr(pd, attr)(ipath, **kwargs)
+            if chunksize:
+                if mb: return data, nchunks, nlines
+                else:  return data
+            return [data]
 
-            if self.verbose: print('reading   ...')
-            self.fpath = fpath
-            self.data  = getattr(pd, attr)(fpath, **kwargs)
-        
         #**************************************************
         # intercepts pandas.to_* write methods
         #**************************************************
-        def write(data, opath, **kwargs):
+        def to_(data, opath, **kwargs):
             "dumps pandas data to file in desired format"
             return getattr(data, attr)(opath, **kwargs)
         
         # calls respective pandas io interface
-        if   'read_' in attr: return read
-        elif 'to_'   in attr: return write
+        if   'read_' in attr: return read_
+        elif 'to_'   in attr: return to_
         raise AttributeError(self.__class__.__name__ + 
                              " doesn't have %s attribute" % attr) 
-    
-class BigDataPd(        Pandas, BigData       ): pass
-class ChunksPd(         Pandas, Chunks        ): pass
-class ParallelPdRepeat( Pandas, ParallelRepeat): pass
-class ParallelPdOnce(   Pandas, ParallelOnce  ): pass
+
+class BigDataPd(        BigData,        Pandas): pass 
+class ChunksPd(         Chunks,         Pandas): pass
+class ParallelPdRepeat( ParallelRepeat, Pandas): pass
+class ParallelPdOnce(   ParallelOnce,   Pandas): pass
 
 
 #################################################################
-# pandas data specific interfaces
+# pandas specific interfaces
 #################################################################
 class SamplePd(BigDataPd):
     "Returns a sample of data according to passed df.dropna args"
@@ -219,28 +241,29 @@ class SamplePd(BigDataPd):
         self.min, self.max = min, max
         self.kwargs = kwargs
         self.sample = None
-        BigDataPd.__init__(self, verbose=verbose)                     # operate
-        if os.path.exists(self.chunksdir): self.clean(self.chunksdir) # clean up
-        return self.sample            # for simplicity return sample in one shot
-    def ondata(self, data, chunkpath):
+        BigDataPd.__init__(self, verbosity=verbose)
+    def onchunkdata(self, data, chunkpath):
         chunk = data.dropna(**self.kwargs)
         if chunk.shape[0] >= self.min: 
-            self.onsample(chunk.iloc[:self.max], 
-                                        chunkpath)
-            # stops here, after getting a desired sample
+            self.onsample(chunk.iloc[:self.max], chunkpath)
             raise self.StopOperation
     def onsample(self, sample, chunkpath): self.sample = sample
 
 class DropDuplicatesPd(ParallelPdOnce):
     def onparallelonce(self, selfpath, parallelpath):
         if selfpath == parallelpath:
-            self.loadself(selfpath)
-            self.data.drop_duplicates(inplace=True)
-            self.dumpself(self.data)
+            data = self.loadself(selfpath)
+            data.drop_duplicates(inplace=True)
+            self.dumpself(data)
+            self.data = data
             return
         df2      = self.loadparallel(parallelpath)
         ign, df2 = pdmgr.drop_duplicates(self.data, df2)
         self.dumpparallel(df2)
+    def loadself(    self, selfpath    ): raise NotImplementedError
+    def dumpself(    self, selfdata    ): raise NotImplementedError    
+    def loadparallel(self, parallelpath): raise NotImplementedError
+    def dumpparallel(self, paralleldata): raise NotImplementedError
 
 # unittests
 # tests this module's logicic
@@ -250,115 +273,198 @@ if __name__ == '__main__':
     import pandas as pd, numpy as np
     
     class BigDataLogicTest(unittest.TestCase):
-        # create testing files, atleast 25 MB each
-        def setUp(self):
-            self.origjson  = 'test.json'
-            self.chunksdir = 'test'
-            self.mb        = 5        # mb => 50 chunks
-            origdata = np.random.randn(10 ** 6).reshape((10 ** 5, 10)) # arr
-            origdata = pd.DataFrame(origdata)
-            # drop duplicates
-            origdata.drop_duplicates(inplace=True)
-            self.origdata = origdata
-            # duplicate quarter of data and shuffle
-            origdata = pd.concat([origdata, 
-                                  origdata[:int(len(origdata) / 4)]])          
-            origdata = origdata.sample(frac=1).reset_index(drop=True)
+        # set testing 
+        def setUp(self): 
+            # create testing dir
             os.chdir(os.path.split(__file__)[0])
             os.mkdir('tests')
             os.chdir('tests')
+
+            self.mb  = 0.5  # mb (chunksize), reuse
+        
+            # populate testing data
+            origdata = np.random.randn(10 ** 6).reshape((10 ** 5, 10)) # arr
+            origdata = pd.DataFrame(origdata)
+            # drop data duplicates
+            origdata.drop_duplicates(inplace=True)
+            # remember original data
+            self.origdata = origdata
+            # duplicate quarter of data, then ...
+            origdata = pd.concat([origdata, 
+                                  origdata[:int(len(origdata) / 4)]])  
+            # shuffle duplicated data        
+            origdata = origdata.sample(frac=1).reset_index(drop=True)
+
+            # save duplicated data in file (test.json)
+            self.origjson = 'test.json'
             origdata.to_json(self.origjson, lines=True, orient='records')
 
-        # remove testing dirs and files
+            # define initial data files
+            total  = len(origdata)
+            third1 = int((1 / 3) * total)
+            third2 = int((2 / 3) * total) 
+            self.origjsons = {'test1.json': slice(0,      third1, 1),                      
+                              'test2.json': slice(third1, third2, 1), 
+                              'test3.json': slice(third2, total,  1),}
+            # dump data into initial files 
+            for fname, third in self.origjsons.items():
+                origdata[third].to_json(fname, lines=True, 
+                                                orient='records')
+                
+            # define chunker for reuse
+            class ChunkItUp(BigDataPd):
+                # runs in constructor (__init__)
+                def init(test):
+                    # hierarchy root dir
+                    chunksdir = 'test'
+                    os.mkdir(chunksdir)
+
+                    # chunk initial data files
+                    for fname in self.origjsons:
+                        data, nchunks, nlines = test.read_json(fname, 
+                                                               lines=True,
+                                                               mb=True, 
+                                                               chunksize=self.mb)
+                        
+                        # create chunksdir name
+                        dirname = os.path.splitext(fname)[0]
+                        dirname = os.path.split(dirname)[-1]
+                        dirname = os.path.join(chunksdir, dirname)
+
+                        # start chunking
+                        test.operate(data, dirname, nchunks)
+
+                        # after successful chunking, save hierarchy root
+                        self.chunksdir = chunksdir
+
+                # define event handler
+                def onchunkdata(test, data, chunkpath):
+                    # dump chunkdata to chunkfile, could do more
+                    test.to_json(data, chunkpath, lines=True, 
+                                                  orient='records')        
+            # remember chunker
+            self.ChunkItUp = ChunkItUp
+
+        # clean testing environment 
         def tearDown(self):
             try:
-                os.system('rm %s' % self.origjson)
+                for fname in self.origjsons: 
+                    os.system('rm %s' % fname)
                 os.chdir(os.pardir)
             # tests clean up after themselves
             finally: os.system('rm -r tests') 
 
-        # main logic test
-        def test_bigdata_logic(self):
-            class ChunkItUp(BigDataPd):
-                def init(test):
-                    test.read_json(self.origjson, lines=True, 
-                                                  chunksize=self.mb)
-                    # default args
-                    test.operate() 
-                def ondata(test, data, chunkpath):
-                    # actual custom classes do more here
-                    test.to_json(data, chunkpath, lines=True, 
-                                                  orient='records')
+        # test BigData and Chunks
+        def test_chunking(self):
+            # define in-memory loader
             class LoadAll(BigDataPd):
-                # loads all data in memory
-                def init(test): test.read_json(self.origjson, lines=True)
+                def init(test): 
+                    # remember loaded data
+                    test.data = test.read_json(self.origjson, lines=True)
             
-            # internally tests BigDataPd
+            # implicitly tests BigData
             class CompareChunksToOriginal(ChunksPd):
                 def init(test):
+                    # remember chunks
                     test.chunks = []    
+                    # output file
                     ofile       = 'test.out'
-                    ChunkItUp()                               # chop into chunks
-                    loaded = LoadAll().data                   # load at once
+
+                    self.ChunkItUp(verbosity=True)     # into chunks
+                    loaded  = LoadAll().data[0]                  # load at once
                     test.operate(self.chunksdir, ofile, True) # load in chunks
-                    # test data integrity in memory 
+                    
                     # tests chunking
+                    # test data integrity in memory 
                     chunks = pd.concat(test.chunks, ignore_index=True)
-                    pd.testing.assert_frame_equal(chunks, loaded)
-                    # test data integrity in filesystem 
-                    # tests joining 
+                                               # (chunked, original) data
+                    pd.testing.assert_frame_equal(chunks,  loaded)
+
+                    # tests joining
+                    # test data integrity in filesystem  
                     out = subprocess.run(['diff', self.origjson, ofile],
                                         capture_output=True)
                     self.assertEquals(len(out.stdout), 0)
-                    # clears runtime environment
-                    # test cleaning
+
+                    # tests cleaning
+                    # clear runtime environment
                     self.assertFalse(os.path.exists(self.chunksdir))
-                # bundle chunks
-                def ondata(test, chunkpath):
+
+                # define event handler
+                def onchunkpath(test, chunkpath):
                     test.chunks.append(pd.read_json(chunkpath, lines=True))
-            
-            # test if the operation loop stops on demand
+            # run test
+            CompareChunksToOriginal(verbosity=True)
+
+        # test instance.StopOperation
+        def test_operation_stop(self):
+            # define sampler
             class IsSampleGood(SamplePd):
                 def __init__(         test, min, max, *pargs, **kwargs):
+                    # run interface, then ...
                     SamplePd.__init__(test, min, max, *pargs, **kwargs)
-                    # it has to have a sample in this test
-                    # tests BigData.StopOperation
-                    self.assertGreaterEqual(len(test.sample), min)  # no pd.nan
-                    self.assertTrue(test.sample.all().all())        # good sample?
+                    # assert values
+                    self.assertGreaterEqual(len(test.sample), min) # no pd.nan
+                    self.assertTrue(test.sample.all().all())       # good sample?
+                
+                # runs in the constructor above
                 def init(test):
-                    test.read_json(self.origjson, lines=True, 
-                                                  chunksize=self.mb)
-                    test.operate()
-            
-            # tests parallels
+                    tempdir = 'temp' # adhere to bigdata protocol (chunksdir)
+                    data, nchunks, nlines = test.read_json(self.origjson, 
+                                                           lines=True, 
+                                                            mb=True,
+                                                            chunksize=self.mb)
+                    # invoked here for simplicity
+                    test.operate(data, tempdir, nchunks, clean=True)
+            # run test
+            IsSampleGood(5, 10, verbose=2)
+
+        # test ParallelOnce and ParallelRepeat
+        def test_parallelization(self):
+            # define parallelizer
             class Parallelize(DropDuplicatesPd):
                 def init(test):
+                    # output file
                     ofile = 'test.out'
-                    # chunk duplicated and shuffled file
-                    ChunkItUp()
-                    # drop duplicates in chunks
+
+                    # chunk initial shufled duplicated data file
+                    self.ChunkItUp(verbosity=True)
+
+                    # drop duplicates in parallel
                     test.operate(self.chunksdir, ofile, True)
-                    # define loader and load
+
+                    # define in-memory loader 
                     class LoadAll(BigDataPd):
-                        # loads all data in memory
-                        def init(test): test.read_json(ofile, lines=True)
+                        def init(test):
+                            # remember data
+                            test.data = test.read_json(ofile, lines=True)[0]
+                    # load initial unduplicated data
                     unique = LoadAll().data
-                    # assert equality
+
+                    # assert values      (original,      operated) 
                     self.assertCountEqual(self.origdata, unique)
-                def loadself(test, selfpath): 
-                    test.read_json(selfpath, lines=True)
+                
+                ##################################################
+                # adhere to parallel protocol ...
+                ##################################################
+                # selfpath 
+                def loadself(test, selfpath):
+                    # remember selfpath and return data
+                    test.selfpath = selfpath
+                    return test.read_json(selfpath, lines=True)[0]
                 def dumpself(test, selfdata): 
-                    selfdata.to_json(test.fpath, lines=True, 
-                                                 orient='records')
+                    # reuse saved selfpath
+                    selfdata.to_json(test.selfpath, lines=True, orient='records')
+
+                # parallelpath
                 def loadparallel(test, parallelpath):
+                    # remember parallelpath and return data
                     test.parallelpath = parallelpath
                     return pd.read_json(parallelpath, lines=True)
                 def dumpparallel(test, paralleldata):
-                    paralleldata.to_json(test.parallelpath, 
-                                         lines=True, 
-                                         orient='records')
-            # tests are invoked here, but defined on top
-            CompareChunksToOriginal()
-            IsSampleGood(5, 10)
-            Parallelize()
+                    # reuse parallelpath
+                    paralleldata.to_json(test.parallelpath, lines=True, 
+                                                            orient='records')
+            # run test
+            Parallelize(verbosity=3)
     unittest.main()
