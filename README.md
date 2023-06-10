@@ -67,7 +67,7 @@ ChunkIt(verbosity=2)
 print('tree ...')
 !tree
 
-# drop dupplicates
+# drop duplicates
 print()
 print()
 print()
