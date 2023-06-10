@@ -19,11 +19,6 @@ Support is provided for data files in formats (ie. json, html, csv, table, etc) 
 For simplicity, a user need not worry about system management invoked in this package but perform operations on files as a whole (without in-place) or in chunks (with in-place). These data operations include: storing, formatting, fetching, cleaning, reshaping, aligning, aggregating, analysing, visualising, etc. 
 
 
-USAGE:
------
-The ```if __name__ == '__main__':``` statement block in ```__init__.py``` implements unittests for this package's main logic (handling big files or hierarchical chunks of data). In these tests, pandas specific interfaces are customized and invoked as desired. Please, see code file (```__init__.py```) for example usages.
-
-
 EXAMPLES:
 --------
 - example code
