@@ -98,3 +98,49 @@ class DropDup(mgr.DropDuplicatesPd):
 # run
 DropDup(verbosity=2)
 ```
+
+- output
+
+```
+dumb.pd
+
+counting ...
+=> file path  : dumb.pd
+   file size  : 21970 MB
+   chunks     : 5
+   nlines     : 29
+Chunking ...
+	 chunk: [ 1 ]
+	 chunk: [ 2 ]
+	 chunk: [ 3 ]
+	 chunk: [ 4 ]
+	 chunk: [ 5 ]
+=> chunks     : 5
+   time taken : 0 days, 0 hrs, 0 mins, 0.05 secs
+done!
+
+tree ...
+.
+├── dumb_dir
+│   ├── dumb_dir-1
+│   ├── dumb_dir-2
+│   ├── dumb_dir-3
+│   ├── dumb_dir-4
+│   └── dumb_dir-5
+└── dumb.pd
+1 directory, 6 files
+
+Dropping Duplicates ...
+	 chunkpath: [ dumb_dir/dumb_dir-1 ]
+	 chunkpath: [ dumb_dir/dumb_dir-2 ]
+	 chunkpath: [ dumb_dir/dumb_dir-3 ]
+	 chunkpath: [ dumb_dir/dumb_dir-4 ]
+	 chunkpath: [ dumb_dir/dumb_dir-5 ]
+=> chunks     : 5
+   time taken : 0 days, 0 hrs, 0 mins, 0.11 secs
+joining   ...
+cleaning  ...
+done!
+
+drop duplicates PASSED!
+```
