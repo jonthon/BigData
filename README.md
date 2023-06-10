@@ -26,56 +26,75 @@ The ```if __name__ == '__main__':``` statement block in ```__init__.py``` implem
 
 EXAMPLES:
 --------
-- Sample output from unittest run: 
-   Three intial test files ```test1.json```, ```test2.json```, and ```test3.json``` are chunked into a hierarchical directory. Then, duplicates are dropped from all chunks (45). Please, see below sample output with lowest verbosity from the ```test_parallelization``` test suite. 
+- example code
 
 ```
-jon@jons-linux:~$ python3 -W ignore lib/datamgr/__init__.py
-Chunking .....
-..counting ...
-=> file path  : test1.json
-   file size  : 7329105 MB
-   chunks     : 15
-   nlines     : 2843
-operating ...
-=> chunks     : 15
-   time taken : 0 days, 0 hrs, 0 mins, 0.31 secs
-done!
+import numpy   as np
+import pandas  as pd
+import datamgr as mgr
 
+file      = 'dumb.pd'
+chunksdir = 'dumb_dir'
 
-counting ...
-=> file path  : test2.json
-   file size  : 7328699 MB
-   chunks     : 15
-   nlines     : 2843
-operating ...
-=> chunks     : 15
-   time taken : 0 days, 0 hrs, 0 mins, 0.34 secs
-done!
+# create data
+data  = np.random.randn(1000).reshape((100, 10))
+data  = pd.DataFrame(data)
+data.drop_duplicates(inplace=True)
+data1 = pd.concat([data, data.iloc[:25]])       # duplicate
+data1.sample(frac=1).reset_index(drop=True)      # shuffle
+data1.to_json(file, lines=True, orient='records')
 
+# peek
+!ls
 
-counting ...
-=> file path  : test3.json
-   file size  : 7329145 MB
-   chunks     : 15
-   nlines     : 2843
-operating ...
-=> chunks     : 15
-   time taken : 0 days, 0 hrs, 0 mins, 0.33 secs
-done!
+# Chop data into chunks
+print()
+print()
+print()
+class ChunkIt(mgr.BigDataPd):
+    operation = 'Chunking ...'  # for verbosity
+    def init(self):
+        # if mb=True, else pandas defaults
+        data, nchunks, nlines = self.read_json(file, mb=True, chunksize=0.005, lines=True)
+        self.operate(data, chunksdir, nchunks)
+    def onchunkdata(self, data, chunkpath):
+        # more data operations here
+        self.to_json(data, chunkpath, lines=True, orient='records')
+# run
+ChunkIt(verbosity=2)
 
-Dropping Dupplicates ...
-operating ...
-=> chunks     : 45
-   time taken : 0 days, 0 hrs, 0 mins, 21.3 secs
-joining   ...
-cleaning  ...
-done!
+# peek
+print('tree ...')
+!tree
 
+# drop dupplicates
+print()
+print()
+print()
+class DropDup(mgr.DropDuplicatesPd):
+    operation = 'Dropping Duplicates ...'
+    def init(self):
+        # in-place operation (file)
+        self.operate(chunksdir, file, True)
+        # prove operation accuracy
+        try:
+            data2 = pd.read_json(file, lines=True)
+            pd.testing.assert_frame_equal(data, data2)
+        except AssertionError:
+            print('drop duplicates FAILED!')
+        else:
+            print('drop duplicates PASSED!')
+    def loadself(self, selfpath):
+        self.selfpath = selfpath
+        return pd.read_json(selfpath, lines=True)
+    def dumpself(self, selfdata):
+        selfdata.to_json(self.selfpath, lines=True, orient='records')
+    def loadparallel(self, parallelpath):
+        self.parallelpath = parallelpath
+        return pd.read_json(parallelpath, lines=True)
+    def dumpparallel(self, paralleldata):
+        paralleldata.to_json(self.parallelpath, lines=True, orient='records')
 
-.
-----------------------------------------------------------------------
-Ran 3 tests in 25.487s
-
-OK
+# run
+DropDup(verbosity=2)
 ```
