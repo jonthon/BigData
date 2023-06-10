@@ -40,7 +40,7 @@ chunksdir = 'dumb_dir'
 data  = np.random.randn(1000).reshape((100, 10))
 data  = pd.DataFrame(data)
 data.drop_duplicates(inplace=True)
-data1 = pd.concat([data, data.iloc[:25]])       # duplicate
+data1 = pd.concat([data, data.iloc[:25]])        # duplicate
 data1.sample(frac=1).reset_index(drop=True)      # shuffle
 data1.to_json(file, lines=True, orient='records')
 
