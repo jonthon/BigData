@@ -43,9 +43,6 @@ data1.to_json(file, lines=True, orient='records')
 !ls
 
 # Chop data into chunks
-print()
-print()
-print()
 class ChunkIt(mgr.BigDataPd):
     operation = 'Chunking ...'  # for verbosity
     def init(self):
@@ -65,9 +62,6 @@ print('tree ...')
 !tree
 
 # drop duplicates
-print()
-print()
-print()
 class DropDup(mgr.DropDuplicatesPd):
     operation = 'Dropping Duplicates ...'
     def init(self):
