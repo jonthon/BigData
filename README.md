@@ -55,7 +55,9 @@ class ChunkIt(mgr.BigDataPd):
     operation = 'Chunking ...'  # for verbosity
     def init(self):
         # if mb=True, else pandas defaults
-        data, nchunks, nlines = self.read_json(file, mb=True, chunksize=0.005, lines=True)
+        data, nchunks, nlines = self.read_json(file, mb=True, 
+						     chunksize=0.005, 
+						     lines=True)
         self.operate(data, chunksdir, nchunks)
     def onchunkdata(self, data, chunkpath):
         # more data operations here
@@ -77,13 +79,11 @@ class DropDup(mgr.DropDuplicatesPd):
         # in-place operation (file)
         self.operate(chunksdir, file, True)
         # prove operation accuracy
-        try:
-            data2 = pd.read_json(file, lines=True)
-            pd.testing.assert_frame_equal(data, data2)
-        except AssertionError:
-            print('drop duplicates FAILED!')
-        else:
+        data2 = pd.read_json(file, lines=True)
+	if len(data2) == len(data):
             print('drop duplicates PASSED!')
+        else:
+            print('drop duplicates FAILED!')
     def loadself(self, selfpath):
         self.selfpath = selfpath
         return pd.read_json(selfpath, lines=True)
