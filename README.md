@@ -3,11 +3,14 @@
 MOTIVE:
 ------
 The main motive for this package is implementation of in-place data operations (ie. dropping duplicates) on very large files of data. For instance, ```pandas.read_*``` loading interfaces load large data files in chunks but don't provide a direct tool to perform in-place operations on those files.
+It solves the problem by dumping data chunks to OS filesystem with unique pathnames that serve as chunks' markers, hence ideal for data chunks management and monitoring.
 
 DESCRIPTION:
 -----------
 + system interfaces: ```BigData```, ```Chunks```, ```ParallelRepeat```, and ```ParallelOnce```
 + pandas interfaces: ```Pandas```, ```BigDataPd```, ```ChunksPd```, ```ParallelPdRepeat```, ```ParallelPdOnce```, ```SamplePd```, and ```DropDuplicatesPd```
+
+```BigData*``` types perform data operations (not in-place) on the iterated data file in chunks. Whereas, ```Chunks*```, ```ParallelRepeat*```, and ```ParallelOnce*``` perform all operations that ```BigData*``` can and all in-place data operations. 
 
 This package implements interfaces for use on huge data files of any format (ie. json, html, csv, table, etc) supported by data libraries like ```pandas```, ```numpy```, ```polars```, etc. ```pandas``` loading and dumping (```read_*``` and ```obj.to_*```) interfaces are primarily used in this package. However, customization is more than welcomed to implement other data library interfaces. The low level interfaces (system intefaces) mentioned above are the recommended interfaces to customize for a specific data library. See pandas interfaces mentioned above in the ```__init__.py``` for an example implementation.
 
