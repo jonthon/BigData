@@ -6,6 +6,8 @@ The main motive for this package is implementation of in-place data operations (
 
 It solves the problem by dumping data chunks to OS filesystem with unique pathnames that serve as chunks' markers, hence ideal for data chunks management and monitoring.
 
+
+
 DESCRIPTION:
 -----------
 + system interfaces: ```BigData```, ```Chunks```, ```ParallelRepeat```, and ```ParallelOnce```
@@ -23,9 +25,11 @@ A good example is ```DropDuplicatesPd``` that drops duplicated rows from chunks 
 For more flexibility, customize the pandas specific interfaces mentioned earlier and perform specific data operations using pandas.
 
 
+
 USAGE:
 -----
 The ```if __name__ == '__main__':``` statement block in ```__init__.py``` implements unittests for this package's main logic (handling big files or chunks of data). In these tests, pandas specific interfaces are customized and invoked as desired. Please, see code file (```__init__.py```) for example usages.
+
 
 
 EXAMPLES:
