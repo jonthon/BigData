@@ -1,5 +1,9 @@
 # BigData
 
+MOTIVE:
+------
+The main motive for this package is implementation of in-place data operations (ie. dropping duplicates) on very large files of data. For instance, ```pandas.read_*``` loading interfaces load large data files in chunks but don't provide a direct tool to perform in-place operations on those files.
+
 DESCRIPTION:
 -----------
 + system interfaces: ```BigData```, ```Chunks```, ```ParallelRepeat```, and ```ParallelOnce```
