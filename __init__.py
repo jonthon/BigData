@@ -13,6 +13,7 @@ else: from datamgr import _pdmgr as pdmgr
 # general 
 #################################################################
 class Timer:
+    "run self.start, self.stop, then self.timetaken for elapsed time"
     def __init__(self):
         self.started = None
         self.stopped = None
@@ -38,8 +39,14 @@ class Timer:
 # System interfaces
 #################################################################
 class FileSystemMgr:
-    # base system interface with mixin interface logic 
-    # (ie. self.StopOperation, self.init)
+    """
+    This class is the base system interface with mixin interface 
+    logic (ie. self.StopOperation, self.init) used in higher 
+    system classes implemented in this package. It's recommended 
+    not to customize directly for data specific operations.
+    """
+    operation = 'operating ...'
+
     class StopOperation(Exception): pass
 
     def __init__(self, *, verbosity=False):
@@ -63,11 +70,29 @@ class FileSystemMgr:
 
 class BigData(FileSystemMgr):
     """
+    This class emulates arrays scalar operations accross chunks of 
+    huge data files instead of dimensions. Thus, same operations 
+    are perfomed on every chunk of parsed data from a huge data file.
+
+    Customize onchunkdata method for data operations (ie. counts, 
+    reformatting, transforming, etc ...). onchunkdata takes a 
+    data chunk and a path that can be used to dump the chunk to disk 
+    memory for later operations.
+
+    Calling the operate method, starts the scalar operations accross 
+    chunks. For simplicity fetch desired data and call operation 
+    method in init method (implicitly called by the constructor). 
+        - operate args: 
+            + data:      parsed data iterable (ie. pd chunks reader)
+            + chunksdir: directory to dump chunks of data
+            + nchunks:   precision of chunkspaths (ie.chunksdir-001) 
+            + opath:     output file path to join chunks
+            + clean:     removes chunksdir recursively if True
     """
     def operate(self, data, chunksdir, nchunks=None, opath=None, clean=False):
         """
         """
-        if self.verbosity: print('operating ...')
+        if self.verbosity: print(self.operation)
 
         #**********************************************
         # operation handler logic, OOP as desired
@@ -110,8 +135,28 @@ class BigData(FileSystemMgr):
     def onchunkdata(self, data, chunkpath): raise NotImplementedError
     
 class Chunks(FileSystemMgr):
+    """
+    Similar to BigData, this class emulates arrays scalar operations 
+    accross chunks of data in a hierarchical directory of chunks 
+    instead of a single file. Thus, same operations are perfomed on 
+    every path of data chunk. 
+
+    Customize onchunkpath method for data operations (ie. counts, 
+    reformatting, transforming, etc ...). onchunkdata takes a path 
+    to a data chunk that can be used to load the data in memory and 
+    perform in-place operations on the chunk (just use same path to 
+    dump back).
+
+    Calling the operate method, starts the scalar operations accross 
+    chunks. For simplicity, call operate with desired arguments in 
+    init method (implicitly called by the constructor). 
+        - operate args: 
+            + chunksdir: hierarchical directory of data chunks 
+            + opath:     output file path to join chunks
+            + clean:     removes chunksdir recursively if True
+    """
     def operate(self, chunksdir, opath=None, clean=False):
-        if self.verbosity: print('operating ...')
+        if self.verbosity: print(self.operation)
 
         # collect paths for processing
         chunkspaths = []
@@ -146,7 +191,30 @@ class Chunks(FileSystemMgr):
     def onchunkpath(self, chunkpath): raise NotImplementedError
 
 class ParallelRepeat(Chunks):
-    # (nchunks ** 2) runs
+    """
+    This class customizes onchunkpath method of Chunks class. It 
+    re-iterates a hierarchical directory of data chunk paths for 
+    every chunk path in the directoy repeatedly. 
+
+    It pairs chunks paths of a directory and passes the path names 
+    to onparallel method for pair operations. Thus, it performs 
+    inter-paths operations of a hierarchical directory of data chunks, 
+    however, repeatedly.
+
+    Thus, if at one point (selfpath1, parallelpath1) pair is 
+    performed, then at a later point (parallelpath1, selfpath1)
+    pair will be performed; hence, the repitition.
+
+    Customize on onparallel to implement data operations (ie. dropping 
+    duplicates, etc ...). For simplicity, call operate in init method 
+    (implicitly called by the constructor).
+    - onparallel method args:
+        + selfpath:     path that re-iterates the chunks hierarchy
+        + parallelpath: a single path of the re-iteration by selfpath 
+
+
+    * NOTE: performs (nchunks ** 2) loop runs
+    """
     def onchunkpath(self, selfpath):
         # starts parallel operation loop ..........................
         for parallelpath in self.chunkspaths:
@@ -157,7 +225,30 @@ class ParallelRepeat(Chunks):
         raise NotImplementedError
 
 class ParallelOnce(ParallelRepeat):
-    # math.factorial(nchunks) runs
+    """
+    This class customizes onparallel method of ParallelRepeat class. It 
+    re-iterates a hierarchical directory of data chunk paths for 
+    every chunk path in the directoy. Unlike ParallelRepeat, it only 
+    operates on a unique pair once. 
+
+    It pairs chunks paths of a directory and passes the path names 
+    to onparallelonce method for pair operations. Thus, it performs 
+    inter-paths operations of a hierarchical directory of data chunks 
+    once per each unique pair.
+
+    Thus, if at one point (selfpath1, parallelpath1) pair is 
+    performed, then at a later point (parallelpath1, selfpath1)
+    pair will be skipped.
+
+    Customize on onparallelonce to implement data operations 
+    (ie. dropping duplicates, etc ...). For simplicity, call operate 
+    in init method (implicitly called by the constructor).
+    - onparallelonce method args:
+        + selfpath:     path that re-iterates the chunks hierarchy
+        + parallelpath: a single path of the re-iteration by selfpath 
+
+    * NOTE: performs math.factorial(nchunks) loop runs
+    """
     def onparallel(self, selfpath, parallelpath):
         if not parallelpath >= selfpath: return
         if self.verbosity > 2: 
@@ -171,13 +262,17 @@ class ParallelOnce(ParallelRepeat):
 # pandas system interfaces, they customize BigData
 ################################################################
 # pandas mixin
-class Pandas:
+class PandasIO:
+    "pandas loading and dumping (IO) interface mixin."
+    def __init__(self, *, verbosity=False):
+        self.verbosity = verbosity
+
     def __getattr__(self, attr):
         #****************************************************
         # intercepts pandas.read_* functions for file reading
         #****************************************************
         def read_(ipath, *, mb=False, **kwargs):
-            "Customizes pandas reader to take chunksize in MB"
+            "Intercepts pandas read_* to optionally take chunksize in MB"
             def mb_to_lines(ipath, chunksize):
                 "Converts chunksize from MB to nlines"
                 if self.verbosity: print('counting ...')
@@ -217,7 +312,7 @@ class Pandas:
         # intercepts pandas.to_* write methods
         #**************************************************
         def to_(data, opath, **kwargs):
-            "dumps pandas data to file in desired format"
+            "dumps pandas data structure to file in desired format"
             return getattr(data, attr)(opath, **kwargs)
         
         # calls respective pandas io interface
@@ -226,22 +321,18 @@ class Pandas:
         raise AttributeError(self.__class__.__name__ + 
                              " doesn't have %s attribute" % attr) 
 
-class BigDataPd(        BigData,        Pandas): pass 
-class ChunksPd(         Chunks,         Pandas): pass
-class ParallelPdRepeat( ParallelRepeat, Pandas): pass
-class ParallelPdOnce(   ParallelOnce,   Pandas): pass
-
 
 #################################################################
 # pandas specific interfaces
 #################################################################
-class SamplePd(BigDataPd):
-    "Returns a sample of data according to passed df.dropna args"
+class SamplePd(BigData):
+    "Returns a sample of data with respect to passed df.dropna args"
+    operation = 'sampling ...'
     def __init__(self, min, max, *, verbose=False, **kwargs):
         self.min, self.max = min, max
         self.kwargs = kwargs
         self.sample = None
-        BigDataPd.__init__(self, verbosity=verbose)
+        BigData.__init__(self, verbosity=verbose)
     def onchunkdata(self, data, chunkpath):
         chunk = data.dropna(**self.kwargs)
         if chunk.shape[0] >= self.min: 
@@ -249,7 +340,9 @@ class SamplePd(BigDataPd):
             raise self.StopOperation
     def onsample(self, sample, chunkpath): self.sample = sample
 
-class DropDuplicatesPd(ParallelPdOnce):
+class Drop_DuplicatesPd(ParallelOnce):
+    "pandas drop_dupilcate emulation for data chunks directory"
+    operation = 'dropping duplicates ...'
     def onparallelonce(self, selfpath, parallelpath):
         if selfpath == parallelpath:
             data = self.loadself(selfpath)
@@ -258,6 +351,7 @@ class DropDuplicatesPd(ParallelPdOnce):
             self.data = data
             return
         df2      = self.loadparallel(parallelpath)
+        if self.data.empty or df2.empty: return
         ign, df2 = pdmgr.drop_duplicates(self.data, df2)
         self.dumpparallel(df2)
     def loadself(    self, selfpath    ): raise NotImplementedError
@@ -293,7 +387,8 @@ if __name__ == '__main__':
             origdata = pd.concat([origdata, 
                                   origdata[:int(len(origdata) / 4)]])  
             # shuffle duplicated data        
-            origdata = origdata.sample(frac=1).reset_index(drop=True)
+            shuffler = np.random.permutation(len(origdata))
+            origdata = origdata.take(shuffler)
 
             # save duplicated data in file (test.json)
             self.origjson = 'test.json'
@@ -312,7 +407,7 @@ if __name__ == '__main__':
                                                 orient='records')
                 
             # define chunker for reuse
-            class ChunkItUp(BigDataPd):
+            class ChunkItUp(BigData):
                 # runs in constructor (__init__)
                 def init(test):
                     # hierarchy root dir
@@ -321,7 +416,8 @@ if __name__ == '__main__':
 
                     # chunk initial data files
                     for fname in self.origjsons:
-                        data, nchunks, nlines = test.read_json(fname, 
+                        pdIO = PandasIO(verbosity=True)
+                        data, nchunks, nlines = pdIO.read_json(fname, 
                                                                lines=True,
                                                                mb=True, 
                                                                chunksize=self.mb)
@@ -340,8 +436,7 @@ if __name__ == '__main__':
                 # define event handler
                 def onchunkdata(test, data, chunkpath):
                     # dump chunkdata to chunkfile, could do more
-                    test.to_json(data, chunkpath, lines=True, 
-                                                  orient='records')        
+                    data.to_json(chunkpath, lines=True, orient='records')        
             # remember chunker
             self.ChunkItUp = ChunkItUp
 
@@ -357,28 +452,31 @@ if __name__ == '__main__':
         # test BigData and Chunks
         def test_chunking(self):
             # define in-memory loader
-            class LoadAll(BigDataPd):
+            class LoadAll(BigData):
                 def init(test): 
                     # remember loaded data
-                    test.data = test.read_json(self.origjson, lines=True)
+                    test.data = pd.read_json(self.origjson, lines=True)
             
             # implicitly tests BigData
-            class CompareChunksToOriginal(ChunksPd):
+            class CompareChunksToOriginal(Chunks):
                 def init(test):
                     # remember chunks
                     test.chunks = []    
                     # output file
                     ofile       = 'test.out'
 
-                    self.ChunkItUp(verbosity=True)     # into chunks
-                    loaded  = LoadAll().data[0]                  # load at once
+                    self.ChunkItUp(verbosity=True)            # into chunks
+                    loaded  = LoadAll().data                  # load at once
                     test.operate(self.chunksdir, ofile, True) # load in chunks
                     
                     # tests chunking
                     # test data integrity in memory 
                     chunks = pd.concat(test.chunks, ignore_index=True)
                                                # (chunked, original) data
-                    pd.testing.assert_frame_equal(chunks,  loaded)
+                    index = pd.Index(np.arange(len(loaded)))
+                    chunks.index = index
+                    loaded.index = index
+                    self.assertTrue(loaded.equals(chunks))
 
                     # tests joining
                     # test data integrity in filesystem  
@@ -410,7 +508,8 @@ if __name__ == '__main__':
                 # runs in the constructor above
                 def init(test):
                     tempdir = 'temp' # adhere to bigdata protocol (chunksdir)
-                    data, nchunks, nlines = test.read_json(self.origjson, 
+                    pdIO = PandasIO(verbosity=True)
+                    data, nchunks, nlines = pdIO.read_json(self.origjson, 
                                                            lines=True, 
                                                             mb=True,
                                                             chunksize=self.mb)
@@ -422,7 +521,7 @@ if __name__ == '__main__':
         # test ParallelOnce and ParallelRepeat
         def test_parallelization(self):
             # define parallelizer
-            class Parallelize(DropDuplicatesPd):
+            class Parallelize(Drop_DuplicatesPd):
                 def init(test):
                     # output file
                     ofile = 'test.out'
@@ -434,14 +533,14 @@ if __name__ == '__main__':
                     test.operate(self.chunksdir, ofile, True)
 
                     # define in-memory loader 
-                    class LoadAll(BigDataPd):
+                    class LoadAll(BigData):
                         def init(test):
                             # remember data
-                            test.data = test.read_json(ofile, lines=True)[0]
+                            test.data = pd.read_json(ofile, lines=True)
                     # load initial unduplicated data
                     unique = LoadAll().data
 
-                    # assert values      (original,      operated) 
+                    # assert values      (original,      operated)
                     self.assertCountEqual(self.origdata, unique)
                 
                 ##################################################
@@ -451,7 +550,7 @@ if __name__ == '__main__':
                 def loadself(test, selfpath):
                     # remember selfpath and return data
                     test.selfpath = selfpath
-                    return test.read_json(selfpath, lines=True)[0]
+                    return pd.read_json(selfpath, lines=True)
                 def dumpself(test, selfdata): 
                     # reuse saved selfpath
                     selfdata.to_json(test.selfpath, lines=True, orient='records')
@@ -466,5 +565,5 @@ if __name__ == '__main__':
                     paralleldata.to_json(test.parallelpath, lines=True, 
                                                             orient='records')
             # run test
-            Parallelize(verbosity=3)
+            Parallelize(verbosity=1)
     unittest.main()
