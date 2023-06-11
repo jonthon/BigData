@@ -18,7 +18,7 @@ DESCRIPTION:
 
 ```PandasIO``` class intercepts ```pandas.read_*``` and ```obj.to_*``` loading and dumping (IO) interfaces. It inherits all ```pandas``` IO features, however, it can optionally take ```chunksize``` argument in MB instead of lines and automatically convert it to lines. Thus, if ```mb``` argument of ```read_*``` is ```True```, then ```chunksize``` argument is expected to be in MB.  
 
-For simplicity, a user need not worry about system management invoked in this package but perform operations on files as a whole (without in-place) or in chunks (with in-place). These data operations include: storing, formatting, fetching, cleaning, reshaping, aligning, aggregating, analysing, visualising, etc. 
+For simplicity, a user need not worry about system management invoked in this package but performing data operations (ie. storing, formatting, fetching, cleaning, reshaping, aligning, aggregating, analysing, visualising, etc...) on a data file as a whole (without in-place) or in chunks (with in-place). 
 
 
 EXAMPLES:
