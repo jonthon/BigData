@@ -72,6 +72,7 @@ class DropDup(mgr.DropDuplicatesPd):
     def init(self):
         # in-place operation (file)
         self.operate(chunksdir, file, True)
+	
         # prove operation accuracy
         data2 = pd.read_json(file, lines=True)
 	if len(data2) == len(data):
