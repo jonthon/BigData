@@ -57,7 +57,7 @@ dumb.pd
 ```
 # Chop data into chunks
 class ChunkIt(mgr.BigDataPd):
-    operation = 'Chunking ...'  # for verbosity
+    operation = 'Chunking ...' 		# for verbosity
     
     def init(self):
         # if mb=True, else pandas defaults
