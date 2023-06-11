@@ -48,7 +48,6 @@ data1.to_json(file, lines=True, orient='records')
 
 ```
 dumb.pd
-
 ```
 
 
@@ -56,27 +55,26 @@ dumb.pd
 
 ```
 # Chop data into chunks
-class ChunkIt(mgr.BigDataPd):
-    operation = 'Chunking ...' 		# for verbosity
+class ChunkIt(mgr.BigData):
+    operation = 'Chunking ...'                 # for verbosity
     
     def init(self):
+        pdIO = mgr.PandasIO(verbosity=True)
         # if mb=True, else pandas defaults
-        data, nchunks, nlines = self.read_json(file, mb=True, 
-						     chunksize=0.005, 
-						     lines=True)
+        data, nchunks, nlines = pdIO.read_json(file, mb=True, 
+                                               chunksize=0.005, 
+                                               lines=True)
         self.operate(data, chunksdir, nchunks)
-	
+        
     def onchunkdata(self, data, chunkpath):
         # more data operations here
-        self.to_json(data, chunkpath, lines=True, orient='records')
+        data.to_json(chunkpath, lines=True, orient='records')
 # run
 ChunkIt(verbosity=2)
-
 
 # peek
 print('tree ...')
 !tree
-
 ```
 
 - output
@@ -84,7 +82,7 @@ print('tree ...')
 ```
 counting ...
 => file path  : dumb.pd
-   file size  : 21970 MB
+   file size  : 22002 MB
    chunks     : 5
    nlines     : 29
 Chunking ...
@@ -94,8 +92,9 @@ Chunking ...
 	 chunk: [ 4 ]
 	 chunk: [ 5 ]
 => chunks     : 5
-   time taken : 0 days, 0 hrs, 0 mins, 0.05 secs
+   time taken : 0 days, 0 hrs, 0 mins, 0.07 secs
 done!
+
 
 tree ...
 .
@@ -106,8 +105,8 @@ tree ...
 │   ├── dumb_dir-4
 │   └── dumb_dir-5
 └── dumb.pd
-1 directory, 6 files
 
+1 directory, 6 files
 ```
 
 
@@ -116,30 +115,30 @@ tree ...
 ```
 # drop duplicates
 class DropDup(mgr.DropDuplicatesPd):
-    operation = 'Dropping Duplicates ...'	# for verbosity
+    operation = 'Dropping Duplicates ...'         # for verbosity
     
     def init(self):
         # in-place operation (file)
         self.operate(chunksdir, file, True)
-	
+        
         # prove operation accuracy
         data2 = pd.read_json(file, lines=True)
         if len(data2) == len(data):
             print('drop duplicates PASSED!')
         else:
             print('drop duplicates FAILED!')
-	    
+            
     def loadself(self, selfpath):
         self.selfpath = selfpath
         return pd.read_json(selfpath, lines=True)
-	
+    
     def dumpself(self, selfdata):
         selfdata.to_json(self.selfpath, lines=True, orient='records')
-	
+        
     def loadparallel(self, parallelpath):
         self.parallelpath = parallelpath
         return pd.read_json(parallelpath, lines=True)
-	
+    
     def dumpparallel(self, paralleldata):
         paralleldata.to_json(self.parallelpath, lines=True, orient='records')
 
@@ -157,10 +156,11 @@ Dropping Duplicates ...
 	 chunkpath: [ dumb_dir/dumb_dir-4 ]
 	 chunkpath: [ dumb_dir/dumb_dir-5 ]
 => chunks     : 5
-   time taken : 0 days, 0 hrs, 0 mins, 0.11 secs
+   time taken : 0 days, 0 hrs, 0 mins, 0.15 secs
 joining   ...
 cleaning  ...
 done!
+
 
 drop duplicates PASSED!
 ```
