@@ -119,6 +119,7 @@ tree ...
 class DropDup(mgr.ParallelOnce):
     operation = 'Dropping Duplicates ...'         # for verbosity
     
+    # called in __init__ implicitly
     def init(self):
         # in-place operation (file)
         self.operate(chunksdir, file, True)
