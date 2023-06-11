@@ -116,7 +116,7 @@ tree ...
 
 ```
 # drop duplicates
-class DropDup(mgr.DropDuplicatesPd):
+class DropDup(mgr.ParallelOnce):
     operation = 'Dropping Duplicates ...'         # for verbosity
     
     def init(self):
@@ -129,6 +129,23 @@ class DropDup(mgr.DropDuplicatesPd):
             print('drop duplicates PASSED!')
         else:
             print('drop duplicates FAILED!')
+            
+    def onparallelonce(self, selfpath, parallelpath):
+        # operate on self data chunk
+        if selfpath == parallelpath:
+            data = self.loadself(selfpath)
+            data.drop_duplicates(inplace=True)
+            self.dumpself(data)
+            self.data = data
+            return
+        # operate on parallel data chunk
+        df2 = self.loadparallel(parallelpath)
+        if self.data.empty or df2.empty: return
+        df  = pd.concat([self.data, df2], keys=['df1', 'df2'])
+        dup = df.duplicated()
+        dup = dup.loc['df2']
+        df2 = df2[~dup]
+        self.dumpparallel(df2)
             
     def loadself(self, selfpath):
         self.selfpath = selfpath
