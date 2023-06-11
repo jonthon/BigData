@@ -45,25 +45,30 @@ data1.to_json(file, lines=True, orient='records')
 # Chop data into chunks
 class ChunkIt(mgr.BigDataPd):
     operation = 'Chunking ...'  # for verbosity
+    
     def init(self):
         # if mb=True, else pandas defaults
         data, nchunks, nlines = self.read_json(file, mb=True, 
 						     chunksize=0.005, 
 						     lines=True)
         self.operate(data, chunksdir, nchunks)
+	
     def onchunkdata(self, data, chunkpath):
         # more data operations here
         self.to_json(data, chunkpath, lines=True, orient='records')
 # run
 ChunkIt(verbosity=2)
 
+
 # peek
 print('tree ...')
 !tree
 
+
 # drop duplicates
 class DropDup(mgr.DropDuplicatesPd):
     operation = 'Dropping Duplicates ...'
+    
     def init(self):
         # in-place operation (file)
         self.operate(chunksdir, file, True)
@@ -73,14 +78,18 @@ class DropDup(mgr.DropDuplicatesPd):
             print('drop duplicates PASSED!')
         else:
             print('drop duplicates FAILED!')
+	    
     def loadself(self, selfpath):
         self.selfpath = selfpath
         return pd.read_json(selfpath, lines=True)
+	
     def dumpself(self, selfdata):
         selfdata.to_json(self.selfpath, lines=True, orient='records')
+	
     def loadparallel(self, parallelpath):
         self.parallelpath = parallelpath
         return pd.read_json(parallelpath, lines=True)
+	
     def dumpparallel(self, paralleldata):
         paralleldata.to_json(self.parallelpath, lines=True, orient='records')
 
