@@ -21,7 +21,7 @@ For simplicity, a user need not worry about system management invoked in this pa
 
 EXAMPLES:
 --------
-- Chunking a huge data file into chunks (non in-place)
+- Example data file 
 
 ```
 import numpy   as np
@@ -42,7 +42,19 @@ data1.to_json(file, lines=True, orient='records')
 
 # peek
 !ls
+```
 
+- output
+
+```
+dumb.pd
+
+```
+
+
+- Chunking a huge data file into chunks (non in-place)
+
+```
 # Chop data into chunks
 class ChunkIt(mgr.BigDataPd):
     operation = 'Chunking ...'  # for verbosity
@@ -70,8 +82,6 @@ print('tree ...')
 - output
 
 ```
-dumb.pd
-
 counting ...
 => file path  : dumb.pd
    file size  : 21970 MB
