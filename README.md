@@ -124,7 +124,7 @@ class DropDup(mgr.DropDuplicatesPd):
 	
         # prove operation accuracy
         data2 = pd.read_json(file, lines=True)
-	if len(data2) == len(data):
+        if len(data2) == len(data):
             print('drop duplicates PASSED!')
         else:
             print('drop duplicates FAILED!')
