@@ -21,7 +21,7 @@ For simplicity, a user need not worry about system management invoked in this pa
 
 EXAMPLES:
 --------
-- example code
+- Chunking a huge data file into chunks (non in-place)
 
 ```
 import numpy   as np
@@ -65,38 +65,6 @@ ChunkIt(verbosity=2)
 print('tree ...')
 !tree
 
-
-# drop duplicates
-class DropDup(mgr.DropDuplicatesPd):
-    operation = 'Dropping Duplicates ...'
-    
-    def init(self):
-        # in-place operation (file)
-        self.operate(chunksdir, file, True)
-	
-        # prove operation accuracy
-        data2 = pd.read_json(file, lines=True)
-	if len(data2) == len(data):
-            print('drop duplicates PASSED!')
-        else:
-            print('drop duplicates FAILED!')
-	    
-    def loadself(self, selfpath):
-        self.selfpath = selfpath
-        return pd.read_json(selfpath, lines=True)
-	
-    def dumpself(self, selfdata):
-        selfdata.to_json(self.selfpath, lines=True, orient='records')
-	
-    def loadparallel(self, parallelpath):
-        self.parallelpath = parallelpath
-        return pd.read_json(parallelpath, lines=True)
-	
-    def dumpparallel(self, paralleldata):
-        paralleldata.to_json(self.parallelpath, lines=True, orient='records')
-
-# run
-DropDup(verbosity=2)
 ```
 
 - output
@@ -130,6 +98,48 @@ tree ...
 └── dumb.pd
 1 directory, 6 files
 
+```
+
+
+- Dropping duplicates on chunks of data saved in disk memory (in-place).
+
+```
+# drop duplicates
+class DropDup(mgr.DropDuplicatesPd):
+    operation = 'Dropping Duplicates ...'	# for verbosity
+    
+    def init(self):
+        # in-place operation (file)
+        self.operate(chunksdir, file, True)
+	
+        # prove operation accuracy
+        data2 = pd.read_json(file, lines=True)
+	if len(data2) == len(data):
+            print('drop duplicates PASSED!')
+        else:
+            print('drop duplicates FAILED!')
+	    
+    def loadself(self, selfpath):
+        self.selfpath = selfpath
+        return pd.read_json(selfpath, lines=True)
+	
+    def dumpself(self, selfdata):
+        selfdata.to_json(self.selfpath, lines=True, orient='records')
+	
+    def loadparallel(self, parallelpath):
+        self.parallelpath = parallelpath
+        return pd.read_json(parallelpath, lines=True)
+	
+    def dumpparallel(self, paralleldata):
+        paralleldata.to_json(self.parallelpath, lines=True, orient='records')
+
+# run
+DropDup(verbosity=2)
+```
+
+- output
+
+```
 Dropping Duplicates ...
 	 chunkpath: [ dumb_dir/dumb_dir-1 ]
 	 chunkpath: [ dumb_dir/dumb_dir-2 ]
