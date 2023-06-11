@@ -60,6 +60,7 @@ dumb.pd
 class ChunkIt(mgr.BigData):
     operation = 'Chunking ...'                 # for verbosity
     
+    # called in __init__ implicitly
     def init(self):
         pdIO = mgr.PandasIO(verbosity=True)
         # if mb=True, else pandas defaults
