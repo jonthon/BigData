@@ -1,4 +1,4 @@
-
+======
 MOTIVE:
 ======
 The main motive for this package is implementation of in-place data operations (ie. dropping duplicates) on very large files of data. For instance, ``pandas.read_*`` loading interfaces load large data files in chunks in runtime memory but don't provide a direct tool for in-place operations on those files.
@@ -6,6 +6,7 @@ The main motive for this package is implementation of in-place data operations (
 It solves the problem by dumping data chunks marked with unique pathnames to disk memory, hence better data management on large files.
 
 
+===========
 DESCRIPTION:
 ===========
 + system interfaces: ``BigData``, ``Chunks``, ``ParallelRepeat``, and ``ParallelOnce``
@@ -20,6 +21,7 @@ DESCRIPTION:
 For simplicity, a user need not worry about system management invoked in this package but performing data operations (ie. fetching, storing, formatting, cleaning, reshaping, aligning, aggregating, analysing, visualising, etc...) on a data file as a whole (without in-place) or in chunks (with in-place). 
 
 
+========
 EXAMPLES:
 ========
 
