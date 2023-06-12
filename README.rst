@@ -26,7 +26,7 @@ EXAMPLES:
 --------
 - Example data file 
 
-``
+```
 import numpy   as np
 import pandas  as pd
 import datamgr as mgr
@@ -45,18 +45,18 @@ data1.to_json(file, lines=True, orient='records')
 
 # peek
 !ls
-``
+```
 
 - output
 
-``
+```
 dumb.pd
-``
+```
 
 
 - Chunking a huge data file into chunks (non in-place)
 
-``
+```
 # Chop data into chunks
 class ChunkIt(mgr.BigData):
     operation = 'Chunking ...'                 # for verbosity
@@ -79,11 +79,11 @@ ChunkIt(verbosity=2)
 # peek
 print('tree ...')
 !tree
-``
+```
 
 - output
 
-``
+```
 counting ...
 => file path  : dumb.pd
    file size  : 22002 MB
@@ -111,12 +111,12 @@ tree ...
 └── dumb.pd
 
 1 directory, 6 files
-``
+```
 
 
 - Dropping duplicates on chunks of data saved in disk memory (in-place).
 
-``
+```
 # drop duplicates
 class DropDup(mgr.ParallelOnce):
     operation = 'Dropping Duplicates ...'         # for verbosity
@@ -166,11 +166,11 @@ class DropDup(mgr.ParallelOnce):
 
 # run
 DropDup(verbosity=2)
-``
+```
 
 - output
 
-``
+```
 Dropping Duplicates ...
 	 chunkpath: [ dumb_dir/dumb_dir-1 ]
 	 chunkpath: [ dumb_dir/dumb_dir-2 ]
@@ -185,4 +185,4 @@ done!
 
 
 drop duplicates PASSED!
-``
+```
