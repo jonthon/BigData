@@ -24,25 +24,25 @@ EXAMPLES:
 --------
 - Example data file 
 
-.. code-block::
-    import numpy   as np
-    import pandas  as pd
-    import datamgr as mgr
+.. code-block:: python
+	import numpy   as np
+    	import pandas  as pd
+    	import datamgr as mgr
 
-    file      = 'dumb.pd'
-    chunksdir = 'dumb_dir'
+    	file      = 'dumb.pd'
+    	chunksdir = 'dumb_dir'
 
-    # create data
-    data  = np.random.randn(1000).reshape((100, 10))
-    data  = pd.DataFrame(data)
-    data.drop_duplicates(inplace=True)
-    data1 = pd.concat([data, data.iloc[:25]])        # duplicate
-    shuff = np.random.permutation(len(data1))        # shuffler
-    data1 = data1.take(shuff)			 # shuffle
-    data1.to_json(file, lines=True, orient='records')
+    	# create data
+    	data  = np.random.randn(1000).reshape((100, 10))
+    	data  = pd.DataFrame(data)
+    	data.drop_duplicates(inplace=True)
+    	data1 = pd.concat([data, data.iloc[:25]])        # duplicate
+    	shuff = np.random.permutation(len(data1))        # shuffler
+    	data1 = data1.take(shuff)			 # shuffle
+    	data1.to_json(file, lines=True, orient='records')
 
-    # peek
-    !ls
+    	# peek
+    	!ls
 
 - output
 
@@ -52,7 +52,7 @@ dumb.pd
 
 - Chunking a huge data file into chunks (non in-place)
 
-.. code-block::
+.. code-block:: python
 	# Chop data into chunks
 	class ChunkIt(mgr.BigData):
     	operation = 'Chunking ...'                 # for verbosity
@@ -110,7 +110,7 @@ tree ...
 
 - Dropping duplicates on chunks of data saved in disk memory (in-place).
 
-.. code-block::
+.. code-block:: python
 	# drop duplicates
 	class DropDup(mgr.ParallelOnce):
     	operation = 'Dropping Duplicates ...'         # for verbosity
