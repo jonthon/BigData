@@ -1,1 +1,1 @@
-pygments_style = 'sphinx')
+pygments_style = 'sphinx'
