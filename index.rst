@@ -26,7 +26,7 @@ EXAMPLES:
 --------
 - Example data file 
 
-```
+``
 import numpy   as np
 import pandas  as pd
 import datamgr as mgr
@@ -45,7 +45,7 @@ data1.to_json(file, lines=True, orient='records')
 
 # peek
 !ls
-```
+``
 
 - output
 
