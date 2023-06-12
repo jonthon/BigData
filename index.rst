@@ -22,7 +22,9 @@ For simplicity, a user need not worry about system management invoked in this pa
 
 EXAMPLES:
 ========
+
 *sample data file*
+
 .. code-block:: python
 
 	import numpy   as np
