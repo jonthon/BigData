@@ -20,6 +20,8 @@ DESCRIPTION:
 
 For simplicity, a user need not worry about system management invoked in this package but performing data operations (ie. fetching, storing, formatting, cleaning, reshaping, aligning, aggregating, analysing, visualising, etc...) on a data file as a whole (without in-place) or in chunks (with in-place). 
 
+Please visit https://github.com/jonthon/DataMgr for source code.
+
 
 ========
 EXAMPLES:
