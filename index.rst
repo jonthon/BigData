@@ -69,8 +69,8 @@ EXAMPLES:
 			pdIO = mgr.PandasIO(verbosity=True)
 			# if mb=True, else pandas defaults
 			data, nchunks, nlines = pdIO.read_json(file, mb=True, 
-													chunksize=0.005, 
-													lines=True)
+								chunksize=0.005, 
+								lines=True)
 			self.operate(data, chunksdir, nchunks)
 
 		def onchunkdata(self, data, chunkpath):
