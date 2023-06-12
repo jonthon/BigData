@@ -51,7 +51,6 @@ EXAMPLES:
 
 
 *output*
-
 ::
 	
 	dumb.pd
@@ -87,7 +86,6 @@ EXAMPLES:
 
 
 *output*
-
 ::
 	
 	counting ...
@@ -175,7 +173,6 @@ EXAMPLES:
 
 
 *output*
-
 ::
 
 	Dropping Duplicates ...
