@@ -54,6 +54,7 @@ dumb.pd
 - Chunking a huge data file into chunks (non in-place)
 
 .. code-block:: python
+
 	# Chop data into chunks
 	class ChunkIt(mgr.BigData):
     	operation = 'Chunking ...'                 # for verbosity
@@ -112,6 +113,7 @@ tree ...
 - Dropping duplicates on chunks of data saved in disk memory (in-place).
 
 .. code-block:: python
+
 	# drop duplicates
 	class DropDup(mgr.ParallelOnce):
     	operation = 'Dropping Duplicates ...'         # for verbosity
