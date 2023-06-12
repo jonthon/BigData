@@ -13,7 +13,7 @@ DESCRIPTION:
 + system interfaces: ``BigData``, ``Chunks``, ``ParallelRepeat``, and ``ParallelOnce``
 + pandas interfaces: ``PandasIO``
 
-``BigData`` types perform data operations (not in-place) on the iterated data file in chunks in runtime memory. Whereas, ``Chunk```, ``ParallelRepeat``, and ``ParallelOnce`` perform all operations that ``BigData`` can and all in-place data operations on a data file in chunks on disk memory. Thus, data handling in this package is approached in two ways: data file as a whole (without in-place operations, ``pandas`` default) and data file in chunks paths (with in-place operations).
+``BigData`` types perform data operations (not in-place) on the iterated data file in chunks in runtime memory. Whereas, ``Chunks``, ``ParallelRepeat``, and ``ParallelOnce`` perform all operations that ``BigData`` can and all in-place data operations on a data file in chunks on disk memory. Thus, data handling in this package is approached in two ways: data file as a whole (without in-place operations, ``pandas`` default) and data file in chunks paths (with in-place operations).
 
 ``Parallel*`` types are ideal for in-place operations on data chunks stored in a hierarchical directory. The chunks paths are sorted for integrity and passed to ``onparallel`` and ``onparallelonce`` methods of ``ParallelRepeat`` and ``ParallelOnce`` classes respectively in pairs. ``ParallelRepeat`` performs operations on data chunks pairs repeatedly while ``ParallelOnce`` performs operations once per unique pair. For instance, ``ParallelRepeat`` types, at some point a pair ``(path_x, path_y)`` will be operated and at a later point a pair ``(path_y, path_x)`` will be operated again; hence the repitition. In contrast, operations on same pairs in ``ParallelOnce`` are automatically skipped. Please, see the 'Dropping duplicates ...' in the examples section for a ``Parallel*`` use case.
 
@@ -26,7 +26,7 @@ EXAMPLES:
 --------
 - Example data file 
 
-```
+``
 import numpy   as np
 import pandas  as pd
 import datamgr as mgr
@@ -45,18 +45,18 @@ data1.to_json(file, lines=True, orient='records')
 
 # peek
 !ls
-```
+``
 
 - output
 
-```
+``
 dumb.pd
-```
+``
 
 
 - Chunking a huge data file into chunks (non in-place)
 
-```
+``
 # Chop data into chunks
 class ChunkIt(mgr.BigData):
     operation = 'Chunking ...'                 # for verbosity
@@ -79,11 +79,11 @@ ChunkIt(verbosity=2)
 # peek
 print('tree ...')
 !tree
-```
+``
 
 - output
 
-```
+``
 counting ...
 => file path  : dumb.pd
    file size  : 22002 MB
@@ -111,12 +111,12 @@ tree ...
 └── dumb.pd
 
 1 directory, 6 files
-```
+``
 
 
 - Dropping duplicates on chunks of data saved in disk memory (in-place).
 
-```
+``
 # drop duplicates
 class DropDup(mgr.ParallelOnce):
     operation = 'Dropping Duplicates ...'         # for verbosity
@@ -166,11 +166,11 @@ class DropDup(mgr.ParallelOnce):
 
 # run
 DropDup(verbosity=2)
-```
+``
 
 - output
 
-```
+``
 Dropping Duplicates ...
 	 chunkpath: [ dumb_dir/dumb_dir-1 ]
 	 chunkpath: [ dumb_dir/dumb_dir-2 ]
@@ -185,4 +185,4 @@ done!
 
 
 drop duplicates PASSED!
-```
+``
