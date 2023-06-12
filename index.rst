@@ -51,7 +51,7 @@ EXAMPLES:
 
 - output
 
-|dumb.pd
+dumb.pd
 
 
 
@@ -85,33 +85,35 @@ EXAMPLES:
 
 - output
 
-|counting ...
-|=> file path  : dumb.pd
-|   file size  : 22002 MB
-|   chunks     : 5
-|   nlines     : 29
-Chunking ...
-	 chunk: [ 1 ]
-	 chunk: [ 2 ]
-	 chunk: [ 3 ]
-	 chunk: [ 4 ]
-	 chunk: [ 5 ]
-=> chunks     : 5
-   time taken : 0 days, 0 hrs, 0 mins, 0.07 secs
-done!
+::
 
-
-tree ...
-.
-├── dumb_dir
-│   ├── dumb_dir-1
-│   ├── dumb_dir-2
-│   ├── dumb_dir-3
-│   ├── dumb_dir-4
-│   └── dumb_dir-5
-└── dumb.pd
-
-1 directory, 6 files
+	counting ...
+	=> file path  : dumb.pd
+	   file size  : 22002 MB
+	   chunks     : 5
+	   nlines     : 29
+	Chunking ...
+		 chunk: [ 1 ]
+		 chunk: [ 2 ]
+		 chunk: [ 3 ]
+		 chunk: [ 4 ]
+		 chunk: [ 5 ]
+	=> chunks     : 5
+	   time taken : 0 days, 0 hrs, 0 mins, 0.07 secs
+	done!
+	
+	
+	tree ...
+	.
+	├── dumb_dir
+	│   ├── dumb_dir-1
+	│   ├── dumb_dir-2
+	│   ├── dumb_dir-3
+	│   ├── dumb_dir-4
+	│   └── dumb_dir-5
+	└── dumb.pd
+	
+	1 directory, 6 files
 
 
 
