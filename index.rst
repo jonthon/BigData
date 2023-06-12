@@ -49,6 +49,7 @@ EXAMPLES:
     	# peek
     	!ls
 
+
 *output*
 
 ::
@@ -84,6 +85,7 @@ EXAMPLES:
 	print('tree ...')
 	!tree
 
+
 *output*
 
 ::
@@ -115,6 +117,7 @@ EXAMPLES:
 	└── dumb.pd
 	
 	1 directory, 6 files
+
 
 
 - **Dropping duplicates on chunks of data saved in disk memory (in-place)**
@@ -171,6 +174,7 @@ EXAMPLES:
 	# run
 	DropDup(verbosity=2)
 
+
 *output*
 
 ::
@@ -189,3 +193,4 @@ EXAMPLES:
 	
 	
 	drop duplicates PASSED!
+
