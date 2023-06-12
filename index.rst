@@ -49,7 +49,7 @@ EXAMPLES:
 
 - output
 
-dumb.pd
+|dumb.pd
 
 
 
@@ -83,11 +83,11 @@ dumb.pd
 
 - output
 
-counting ...
-=> file path  : dumb.pd
-   file size  : 22002 MB
-   chunks     : 5
-   nlines     : 29
+|counting ...
+|=> file path  : dumb.pd
+|   file size  : 22002 MB
+|   chunks     : 5
+|   nlines     : 29
 Chunking ...
 	 chunk: [ 1 ]
 	 chunk: [ 2 ]
