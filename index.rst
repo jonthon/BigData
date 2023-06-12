@@ -48,11 +48,9 @@ EXAMPLES:
     	# peek
     	!ls
 
+::
 
-- output
-
-dumb.pd
-
+	dumb.pd
 
 
 *Chunking a huge data file into chunks (non in-place)*
@@ -81,9 +79,6 @@ dumb.pd
 	# peek
 	print('tree ...')
 	!tree
-
-
-- output
 
 ::
 
@@ -114,7 +109,6 @@ dumb.pd
 	└── dumb.pd
 	
 	1 directory, 6 files
-
 
 
 *Dropping duplicates on chunks of data saved in disk memory (in-place)*
@@ -172,19 +166,19 @@ dumb.pd
 	DropDup(verbosity=2)
 
 
-- output
+::
 
-Dropping Duplicates ...
-	 chunkpath: [ dumb_dir/dumb_dir-1 ]
-	 chunkpath: [ dumb_dir/dumb_dir-2 ]
-	 chunkpath: [ dumb_dir/dumb_dir-3 ]
-	 chunkpath: [ dumb_dir/dumb_dir-4 ]
-	 chunkpath: [ dumb_dir/dumb_dir-5 ]
-=> chunks     : 5
-   time taken : 0 days, 0 hrs, 0 mins, 0.15 secs
-joining   ...
-cleaning  ...
-done!
-
-
-drop duplicates PASSED!
+	Dropping Duplicates ...
+		 chunkpath: [ dumb_dir/dumb_dir-1 ]
+		 chunkpath: [ dumb_dir/dumb_dir-2 ]
+		 chunkpath: [ dumb_dir/dumb_dir-3 ]
+		 chunkpath: [ dumb_dir/dumb_dir-4 ]
+		 chunkpath: [ dumb_dir/dumb_dir-5 ]
+	=> chunks     : 5
+	   time taken : 0 days, 0 hrs, 0 mins, 0.15 secs
+	joining   ...
+	cleaning  ...
+	done!
+	
+	
+	drop duplicates PASSED!
