@@ -90,7 +90,7 @@ EXAMPLES:
 	
 	counting ...
 	=> file path  : dumb.pd
-	   file size  : 22002 MB
+	   file size  : 0.022001 MB
 	   chunks     : 5
 	   nlines     : 29
 	Chunking ...
