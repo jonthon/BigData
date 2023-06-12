@@ -25,7 +25,8 @@ For simplicity, a user need not worry about system management invoked in this pa
 EXAMPLES:
 ========
 
-*sample data file*
+
+- **sample data file**
 
 .. code-block:: python
 
@@ -48,12 +49,15 @@ EXAMPLES:
     	# peek
     	!ls
 
+*output*
+
 ::
 
 	dumb.pd
 
 
-*Chunking a huge data file into chunks (non in-place)*
+
+- **Chunking a huge data file into chunks (non in-place)**
 
 .. code-block:: python
 
@@ -79,6 +83,8 @@ EXAMPLES:
 	# peek
 	print('tree ...')
 	!tree
+
+*output*
 
 ::
 
@@ -111,7 +117,7 @@ EXAMPLES:
 	1 directory, 6 files
 
 
-*Dropping duplicates on chunks of data saved in disk memory (in-place)*
+- **Dropping duplicates on chunks of data saved in disk memory (in-place)**
 
 .. code-block:: python
 
@@ -165,6 +171,7 @@ EXAMPLES:
 	# run
 	DropDup(verbosity=2)
 
+*output*
 
 ::
 
