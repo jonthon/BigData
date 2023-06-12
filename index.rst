@@ -53,7 +53,7 @@ dumb.pd
 
 
 
-- Chunking a huge data file into chunks (non in-place)
+*Chunking a huge data file into chunks (non in-place)*
 
 .. code-block:: python
 
@@ -79,6 +79,7 @@ dumb.pd
 	# peek
 	print('tree ...')
 	!tree
+
 
 - output
 
@@ -112,7 +113,7 @@ tree ...
 
 
 
-- Dropping duplicates on chunks of data saved in disk memory (in-place).
+*Dropping duplicates on chunks of data saved in disk memory (in-place)*
 
 .. code-block:: python
 
@@ -165,6 +166,7 @@ tree ...
 
 	# run
 	DropDup(verbosity=2)
+
 
 - output
 
