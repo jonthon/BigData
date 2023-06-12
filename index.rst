@@ -25,24 +25,24 @@ EXAMPLES:
 - Example data file 
 
 .. code-block:: python
-	import numpy   as np
-	import pandas  as pd
-	import datamgr as mgr
+    import numpy   as np
+    import pandas  as pd
+    import datamgr as mgr
 
-	file      = 'dumb.pd'
-	chunksdir = 'dumb_dir'
+    file      = 'dumb.pd'
+    chunksdir = 'dumb_dir'
 
-	# create data
-	data  = np.random.randn(1000).reshape((100, 10))
-	data  = pd.DataFrame(data)
-	data.drop_duplicates(inplace=True)
-	data1 = pd.concat([data, data.iloc[:25]])        # duplicate
-	shuff = np.random.permutation(len(data1))        # shuffler
-	data1 = data1.take(shuff)			 # shuffle
-	data1.to_json(file, lines=True, orient='records')
+    # create data
+    data  = np.random.randn(1000).reshape((100, 10))
+    data  = pd.DataFrame(data)
+    data.drop_duplicates(inplace=True)
+    data1 = pd.concat([data, data.iloc[:25]])        # duplicate
+    shuff = np.random.permutation(len(data1))        # shuffler
+    data1 = data1.take(shuff)			 # shuffle
+    data1.to_json(file, lines=True, orient='records')
 
-	# peek
-	!ls
+    # peek
+    !ls
 
 - output
 
