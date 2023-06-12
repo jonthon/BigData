@@ -25,6 +25,7 @@ EXAMPLES:
 - Example data file 
 
 .. code-block:: python
+
 	import numpy   as np
     	import pandas  as pd
     	import datamgr as mgr
