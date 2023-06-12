@@ -29,14 +29,14 @@ EXAMPLES:
 - **sample data file**
 
 .. code-block:: python
-
+	
 	import numpy   as np
     	import pandas  as pd
     	import datamgr as mgr
-
+	
     	file      = 'dumb.pd'
     	chunksdir = 'dumb_dir'
-
+	
     	# create data
     	data  = np.random.randn(1000).reshape((100, 10))
     	data  = pd.DataFrame(data)
@@ -45,7 +45,7 @@ EXAMPLES:
     	shuff = np.random.permutation(len(data1))        # shuffler
     	data1 = data1.take(shuff)			 # shuffle
     	data1.to_json(file, lines=True, orient='records')
-
+	
     	# peek
     	!ls
 
@@ -53,7 +53,7 @@ EXAMPLES:
 *output*
 
 ::
-
+	
 	dumb.pd
 
 
@@ -61,26 +61,26 @@ EXAMPLES:
 - **Chunking a huge data file into chunks (non in-place)**
 
 .. code-block:: python
-
+	
 	# Chop data into chunks
 	class ChunkIt(mgr.BigData):
-    	operation = 'Chunking ...'                 # for verbosity
-    
-    	# called in __init__ implicitly
-    	def init(self):
-        	pdIO = mgr.PandasIO(verbosity=True)
-        	# if mb=True, else pandas defaults
-        	data, nchunks, nlines = pdIO.read_json(file, mb=True, 
-                	                               chunksize=0.005, 
-                        	                       lines=True)
-        	self.operate(data, chunksdir, nchunks)
+    		operation = 'Chunking ...'                 # for verbosity
+    	
+    		# called in __init__ implicitly
+    		def init(self):
+        		pdIO = mgr.PandasIO(verbosity=True)
+        		# if mb=True, else pandas defaults
+        		data, nchunks, nlines = pdIO.read_json(file, mb=True, 
+                	                               		chunksize=0.005, 
+                        	                       		lines=True)
+        		self.operate(data, chunksdir, nchunks)
         
-    	def onchunkdata(self, data, chunkpath):
-        	# more data operations here
-        	data.to_json(chunkpath, lines=True, orient='records')
+    		def onchunkdata(self, data, chunkpath):
+        		# more data operations here
+        		data.to_json(chunkpath, lines=True, orient='records')
 	# run
 	ChunkIt(verbosity=2)
-
+	
 	# peek
 	print('tree ...')
 	!tree
@@ -89,7 +89,7 @@ EXAMPLES:
 *output*
 
 ::
-
+	
 	counting ...
 	=> file path  : dumb.pd
 	   file size  : 22002 MB
@@ -123,54 +123,54 @@ EXAMPLES:
 - **Dropping duplicates on chunks of data saved in disk memory (in-place)**
 
 .. code-block:: python
-
+	
 	# drop duplicates
 	class DropDup(mgr.ParallelOnce):
-    	operation = 'Dropping Duplicates ...'         # for verbosity
-    
-    	# called in __init__ implicitly
-    	def init(self):
-        	# in-place operation (file)
-        	self.operate(chunksdir, file, True)
+    		operation = 'Dropping Duplicates ...'         # for verbosity
+    	
+    		# called in __init__ implicitly
+    		def init(self):
+        		# in-place operation (file)
+        		self.operate(chunksdir, file, True)
         
-        	# prove operation accuracy
-        	data2 = pd.read_json(file, lines=True)
-        	if len(data2) == len(data):
-            	print('drop duplicates PASSED!')
-        	else:
-            	print('drop duplicates FAILED!')
+        		# prove operation accuracy
+        		data2 = pd.read_json(file, lines=True)
+        		if len(data2) == len(data):
+            		print('drop duplicates PASSED!')
+        		else:
+            		print('drop duplicates FAILED!')
             
-    	def onparallelonce(self, selfpath, parallelpath):
-        	# operate on self data chunk
-        	if selfpath == parallelpath:
-            	data = self.loadself(selfpath)
-            	data.drop_duplicates(inplace=True)
-            	self.dumpself(data)
-            	self.data = data
-            	return
-        	# operate on parallel data chunk
-        	df2 = self.loadparallel(parallelpath)
-        	if self.data.empty or df2.empty: return
-        	df  = pd.concat([self.data, df2], keys=['df1', 'df2'])
-        	dup = df.duplicated()
-        	dup = dup.loc['df2']
-        	df2 = df2[~dup]
-        	self.dumpparallel(df2)
+    		def onparallelonce(self, selfpath, parallelpath):
+        		# operate on self data chunk
+        		if selfpath == parallelpath:
+            		data = self.loadself(selfpath)
+            		data.drop_duplicates(inplace=True)
+            		self.dumpself(data)
+            		self.data = data
+            		return
+        		# operate on parallel data chunk
+        		df2 = self.loadparallel(parallelpath)
+        		if self.data.empty or df2.empty: return
+        		df  = pd.concat([self.data, df2], keys=['df1', 'df2'])
+        		dup = df.duplicated()
+        		dup = dup.loc['df2']
+        		df2 = df2[~dup]
+        		self.dumpparallel(df2)
             
-    	def loadself(self, selfpath):
-        	self.selfpath = selfpath
-        	return pd.read_json(selfpath, lines=True)
-    
-    	def dumpself(self, selfdata):
-        	selfdata.to_json(self.selfpath, lines=True, orient='records')
+    		def loadself(self, selfpath):
+        		self.selfpath = selfpath
+        		return pd.read_json(selfpath, lines=True)
+    	
+    		def dumpself(self, selfdata):
+        		selfdata.to_json(self.selfpath, lines=True, orient='records')
         
-    	def loadparallel(self, parallelpath):
-        	self.parallelpath = parallelpath
-        	return pd.read_json(parallelpath, lines=True)
-    
-    	def dumpparallel(self, paralleldata):
-        	paralleldata.to_json(self.parallelpath, lines=True, orient='records')
-
+    		def loadparallel(self, parallelpath):
+        		self.parallelpath = parallelpath
+        		return pd.read_json(parallelpath, lines=True)
+    	
+    		def dumpparallel(self, paralleldata):
+        		paralleldata.to_json(self.parallelpath, lines=True, orient='records')
+	
 	# run
 	DropDup(verbosity=2)
 
