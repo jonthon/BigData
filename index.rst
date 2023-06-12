@@ -47,7 +47,7 @@ EXAMPLES:
 	data1.to_json(file, lines=True, orient='records')
 
 	# peek
-	!ls
+	# !ls
 
 
 *output*
@@ -81,7 +81,7 @@ EXAMPLES:
 
 	# peek
 	print('tree ...')
-	!tree
+	# !tree
 
 
 
